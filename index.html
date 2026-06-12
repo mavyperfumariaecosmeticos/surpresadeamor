@@ -1,0 +1,659 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Heart, 
+  BookOpen, 
+  Clock, 
+  Image as ImageIcon, 
+  Volume2, 
+  VolumeX, 
+  Sparkles, 
+  Plus, 
+  Trash2,
+  Smile,
+  Compass,
+  Tv,
+  Music
+} from 'lucide-react';
+
+const customStyles = `
+  @keyframes float-heart {
+    0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+  }
+  @keyframes pulse-slow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes float-gentle {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(3deg); }
+  }
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes spin-vinyl {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-float-heart {
+    position: absolute;
+    bottom: -20px;
+    animation: float-heart linear infinite;
+  }
+  .animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
+  }
+  .animate-float-gentle {
+    animation: float-gentle 6s ease-in-out infinite;
+  }
+  .animate-slide-up {
+    animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .animate-spin-vinyl {
+    animation: spin-vinyl 4s linear infinite;
+  }
+  .text-glow {
+    text-shadow: 0 2px 10px rgba(219, 39, 119, 0.2);
+  }
+  .envelope-wrapper {
+    perspective: 1000px;
+  }
+  .envelope {
+    position: relative;
+    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+`;
+
+export default function App() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('letter');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [ytReady, setYtReady] = useState(false);
+  
+  const playerRef = useRef(null);
+
+  // Customização de fotos armazenadas no localStorage para preservar as memórias
+  const [photos, setPhotos] = useState([
+    { id: 1, title: 'O Começo de Tudo', desc: 'A nossa primeira foto juntos, onde o nosso mundo mudou de cor.', url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=600' },
+    { id: 2, title: 'Cúmplices em Tudo', desc: 'Sempre de mãos dadas, enfrentando qualquer tempestade de cabeça erguida.', url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&q=80&w=600' },
+    { id: 3, title: 'O Teu Sorriso', desc: 'A minha maior certeza de que cada pequena luta valeu a pena.', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600' }
+  ]);
+
+  const loveQuotes = [
+    "O teu sorriso é o meu porto seguro mais bonito.",
+    "Amo-te não apenas pelo que és, mas pelo que sou quando estou contigo.",
+    "Prometo segurar a tua mão hoje, amanhã e em todos os dias da nossa vida.",
+    "De todas as histórias de amor do mundo, a nossa é a minha favorita.",
+    "Contigo descobri que o amor verdadeiro cura qualquer ferida do passado.",
+    "Conquistamos tudo juntos porque o nosso amor é feito de verdade e esforço mútuo."
+  ];
+  const [activeQuote, setActiveQuote] = useState(0);
+  const [floatingHearts, setFloatingHearts] = useState([]);
+
+  useEffect(() => {
+    // Carregar fotos salvas do localStorage
+    const savedPhotos = localStorage.getItem('love_letter_photos');
+    if (savedPhotos) {
+      try {
+        setPhotos(JSON.parse(savedPhotos));
+      } catch (e) {
+        console.error("Erro ao carregar fotos locais:", e);
+      }
+    }
+
+    // Gerar corações flutuantes decorativos
+    const hearts = Array.from({ length: 25 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 10}s`,
+      duration: `${12 + Math.random() * 10}s`,
+      size: `${12 + Math.random() * 20}px`,
+      opacity: 0.15 + Math.random() * 0.35
+    }));
+    setFloatingHearts(hearts);
+
+    // Carregar API do YouTube de forma segura
+    const loadYoutubeAPI = () => {
+      if (!window.YT) {
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        window.onYouTubeIframeAPIReady = initializePlayer;
+      } else {
+        initializePlayer();
+      }
+    };
+
+    const initializePlayer = () => {
+      // Criação do player do YouTube voltado para "Zf_fQDpPYjM" (Sunshine - Delacruz)
+      playerRef.current = new window.YT.Player('yt-player-frame', {
+        height: '100%',
+        width: '100%',
+        videoId: 'Zf_fQDpPYjM',
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+          loop: 1,
+          playlist: 'Zf_fQDpPYjM' // Necessário para fazer loop de vídeo único
+        },
+        events: {
+          onReady: () => {
+            setYtReady(true);
+          },
+          onStateChange: (event) => {
+            // Monitorar estados para sincronizar nosso botão com o YouTube
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              setIsPlaying(true);
+            } else if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
+              setIsPlaying(false);
+            }
+          }
+        }
+      });
+    };
+
+    loadYoutubeAPI();
+  }, []);
+
+  const togglePlay = () => {
+    if (playerRef.current && ytReady) {
+      if (isPlaying) {
+        playerRef.current.pauseVideo();
+        setIsPlaying(false);
+      } else {
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newPhoto = {
+          id: Date.now(),
+          title: 'Nova Memória',
+          desc: 'Adiciona uma descrição para este momento especial...',
+          url: reader.result
+        };
+        const updated = [...photos, newPhoto];
+        setPhotos(updated);
+        localStorage.setItem('love_letter_photos', JSON.stringify(updated));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const deletePhoto = (id) => {
+    const updated = photos.filter(p => p.id !== id);
+    setPhotos(updated);
+    localStorage.setItem('love_letter_photos', JSON.stringify(updated));
+  };
+
+  const updatePhotoText = (id, field, value) => {
+    const updated = photos.map(p => {
+      if (p.id === id) {
+        return { ...p, [field]: value };
+      }
+      return p;
+    });
+    setPhotos(updated);
+    localStorage.setItem('love_letter_photos', JSON.stringify(updated));
+  };
+
+  const triggerClickHearts = (e) => {
+    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('.no-click-hearts')) {
+      return;
+    }
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const newHeart = {
+      id: Date.now() + Math.random(),
+      left: `${(x / rect.width) * 100}%`,
+      delay: '0s',
+      duration: '4s',
+      size: '24px',
+      opacity: 0.8,
+      style: {
+        bottom: `${rect.height - y}px`,
+        transform: 'translateY(0) scale(1)'
+      }
+    };
+
+    setFloatingHearts(prev => [...prev, newHeart]);
+    setTimeout(() => {
+      setFloatingHearts(prev => prev.filter(h => h.id !== newHeart.id));
+    }, 4000);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-tr from-rose-50 via-pink-100 to-amber-50 text-slate-800 font-sans relative overflow-x-hidden select-none pb-12" onClick={triggerClickHearts}>
+      <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+
+      {/* Div oculta necessária para carregar e controlar a API do YouTube em segundo plano se a TV estiver fechada */}
+      <div className={`fixed bottom-4 right-4 z-50 w-72 h-44 rounded-2xl overflow-hidden border-4 border-pink-400 bg-black shadow-2xl transition-all duration-500 no-click-hearts ${showVideo && unlocked ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[200%] opacity-0 scale-75 pointer-events-none'}`}>
+        <div id="yt-player-frame" className="w-full h-full"></div>
+        <button 
+          onClick={() => setShowVideo(false)}
+          className="absolute top-2 right-2 bg-pink-600 text-white font-bold text-xs px-2 py-1 rounded hover:bg-pink-700 transition"
+        >
+          Minimizar Áudio
+        </button>
+      </div>
+
+      {/* Background de Corações Flutuantes */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+        {floatingHearts.map((heart) => (
+          <div
+            key={heart.id}
+            className="animate-float-heart text-pink-400 opacity-30"
+            style={{
+              left: heart.left,
+              animationDelay: heart.delay,
+              animationDuration: heart.duration,
+              fontSize: heart.size,
+              opacity: heart.opacity,
+              ...heart.style
+            }}
+          >
+            <Heart fill="currentColor" className="w-full h-full" />
+          </div>
+        ))}
+      </div>
+
+      {/* Cabeçalho */}
+      <header className="relative z-10 max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Heart fill="#db2777" className="text-pink-600 animate-pulse w-6 h-6" />
+          <span className="font-serif font-bold text-lg text-pink-800 tracking-wide">O Nosso Amor Eterno</span>
+        </div>
+        
+        {}
+        <div className="flex items-center gap-3">
+          {unlocked && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowVideo(!showVideo); }}
+              className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold shadow transition-all duration-300 ${showVideo ? 'bg-amber-500 text-white animate-bounce' : 'bg-white/80 text-amber-700 hover:bg-white'}`}
+            >
+              <Tv className="w-3.5 h-3.5" />
+              <span>{showVideo ? 'Ocultar Vídeo' : 'Ver Clipe'}</span>
+            </button>
+          )}
+
+          <button 
+            onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+            className={`flex items-center gap-3 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${isPlaying ? 'bg-pink-600 text-white shadow-lg shadow-pink-200' : 'bg-white/80 backdrop-blur text-pink-700 hover:bg-white'}`}
+          >
+            {isPlaying ? (
+              <>
+                <div className="w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center animate-spin-vinyl border border-white/40">
+                  <Music className="w-3 h-3 text-white" />
+                </div>
+                <span className="flex flex-col items-start leading-none text-left">
+                  <span className="text-[10px] text-pink-200 uppercase tracking-widest font-bold">A Ouvir</span>
+                  <span className="font-semibold text-xs text-white">Sunshine - Delacruz 🎵</span>
+                </span>
+              </>
+            ) : (
+              <>
+                <VolumeX className="w-4 h-4 text-pink-500" />
+                <span className="font-semibold text-xs">Tocar "Sunshine"</span>
+              </>
+            )}
+          </button>
+        </div>
+      </header>
+
+      {!unlocked ? (
+        <main className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-4">
+          <div className="text-center max-w-xl mx-auto mb-12 animate-slide-up">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-100 text-pink-800 text-xs font-semibold uppercase tracking-wider mb-4">
+              <Sparkles className="w-3.5 h-3.5 text-pink-600" /> Criado Especialmente Para Ti
+            </span>
+            <h1 className="text-4xl md:text-5xl font-serif font-extrabold text-pink-900 leading-tight tracking-tight mb-4">
+              Para a Mulher da Minha Vida
+            </h1>
+            <p className="text-slate-600 text-base md:text-lg">
+              Um recanto digital para guardar a história de como duas vidas machucadas se uniram para sempre numa conversa boba de WhatsApp.
+            </p>
+          </div>
+
+          <div className="envelope-wrapper w-full max-w-md animate-float-gentle px-2">
+            <div 
+              className={`envelope bg-gradient-to-br from-rose-100 to-pink-200 border border-pink-300 rounded-2xl shadow-2xl p-8 cursor-pointer transform hover:scale-105 duration-500 relative flex flex-col items-center justify-center min-h-[300px] ${isOpen ? 'rotate-y-180 scale-95 opacity-50 pointer-events-none' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(true);
+                setTimeout(() => {
+                  setUnlocked(true);
+                  if (playerRef.current && ytReady) {
+                    playerRef.current.playVideo();
+                    setIsPlaying(true);
+                  }
+                }, 1200);
+              }}
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="w-24 h-24 rounded-full bg-pink-600/10 flex items-center justify-center animate-pulse-slow">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-600 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/40 hover:scale-110 transition-transform duration-300">
+                    <Heart fill="white" className="text-white w-8 h-8" />
+                  </div>
+                </div>
+                <p className="text-pink-800 font-serif font-semibold mt-4 text-sm uppercase tracking-widest text-glow">
+                  Toca para Abrir
+                </p>
+                <p className="text-slate-500 text-xs mt-1 italic text-center px-4">
+                  Guarda um amor que ultrapassa barreiras e toca a música mais doce
+                </p>
+              </div>
+              <div className="absolute top-4 left-4 text-pink-400/80 font-serif text-xs">◆ 2luv digital ◆</div>
+              <div className="absolute bottom-4 right-4 text-pink-400/80 font-serif text-xs">Para ti, sempre.</div>
+            </div>
+          </div>
+        </main>
+      ) : (
+        <main className="relative z-10 max-w-5xl mx-auto px-4 py-8 animate-slide-up">
+          
+          <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-xl border border-pink-100 mb-8 flex flex-col md:flex-row items-center gap-6 justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-gradient-to-tr from-pink-500 to-rose-400 rounded-2xl text-white shadow-lg">
+                <Heart fill="white" className="w-8 h-8 animate-pulse" />
+              </div>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-serif font-bold text-pink-900">Olá, Minha Linda Esposa</h2>
+                <p className="text-slate-600 text-sm mt-1">Este é o nosso espaço de memórias e da nossa inabalável união.</p>
+              </div>
+            </div>
+            
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                const next = (activeQuote + 1) % loveQuotes.length;
+                setActiveQuote(next);
+              }}
+              className="bg-rose-50 border border-rose-100 rounded-2xl p-4 cursor-pointer hover:bg-rose-100/50 transition-colors duration-300 max-w-sm flex items-start gap-3 w-full md:w-auto"
+            >
+              <Smile className="w-5 h-5 text-pink-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs text-pink-800 font-bold uppercase tracking-wider mb-0.5">Nota de Amor</p>
+                <p className="text-sm text-slate-700 italic">"{loveQuotes[activeQuote]}"</p>
+                <p className="text-[10px] text-slate-400 mt-1">Clique para outra frase ◆</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Abas de Navegação */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl shadow-md border border-pink-100 flex flex-wrap gap-2 justify-center">
+              <button 
+                onClick={(e) => { e.stopPropagation(); setActiveTab('letter'); }}
+                className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'letter' ? 'bg-pink-600 text-white shadow-md' : 'text-slate-600 hover:text-pink-600 hover:bg-rose-50/50'}`}
+              >
+                <BookOpen className="w-4 h-4" />
+                A Nossa Carta
+              </button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); setActiveTab('story'); }}
+                className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'story' ? 'bg-pink-600 text-white shadow-md' : 'text-slate-600 hover:text-pink-600 hover:bg-rose-50/50'}`}
+              >
+                <Clock className="w-4 h-4" />
+                Linha do Tempo
+              </button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); setActiveTab('gallery'); }}
+                className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'gallery' ? 'bg-pink-600 text-white shadow-md' : 'text-slate-600 hover:text-pink-600 hover:bg-rose-50/50'}`}
+              >
+                <ImageIcon className="w-4 h-4" />
+                Álbum de Fotos
+              </button>
+            </div>
+          </div>
+
+          <div className="transition-all duration-500">
+            
+            {/* TAB 1: CARTA DE AMOR COMPLETA */}
+            {activeTab === 'letter' && (
+              <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-12 shadow-xl border border-pink-100 animate-slide-up relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100 rounded-full blur-3xl -z-10 opacity-60"></div>
+                
+                <div className="text-center mb-8">
+                  <span className="font-serif italic text-pink-600 text-lg">Para Sempre, Minha Mulher</span>
+                  <h3 className="text-3xl md:text-4xl font-serif font-bold text-pink-950 mt-1">Como Um Destino Inevitável</h3>
+                  <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-pink-400 to-transparent mx-auto mt-4"></div>
+                </div>
+
+                <div className="prose prose-pink max-w-none text-slate-700 font-serif leading-relaxed text-base md:text-lg space-y-6">
+                  <p>Meu amor,</p>
+                  <p>
+                    Olhando para nós dois hoje, é impossível não sorrir ao lembrar de como tudo começou. Nós nos conhecemos quando nenhum de nós procurava absolutamente nada. O mundo girava lá fora com sua pressa habitual, e nós estávamos ali, cada um no seu canto, carregando bagagens pesadas de um passado que insistia em machucar. Éramos duas pessoas marcadas pela vida, cheias de defesas, medos e problemas, assistindo o tempo passar sem grandes expectativas para o amor.
+                  </p>
+                  
+                  <blockquote className="border-l-4 border-pink-500 bg-pink-50/50 p-6 my-6 rounded-r-2xl font-sans italic text-pink-900 font-medium">
+                    "E então, surgiu aquela conversa boba de WhatsApp... Quem diria que uma tela de celular e algumas mensagens despretensiosas seriam o início da história mais bonita da minha vida?"
+                  </blockquote>
+
+                  <p>
+                    O que começou sem pretensão nenhuma, logo ganhou uma profundidade que nos assustou e nos encantou ao mesmo tempo. A sintonia foi tão forte, o diálogo tão sincero e a conexão tão imediata que, quando nos demos conta, já estávamos completamente envolvidos. Foi algo tão real, tão palpável e intenso, que simplesmente não tinha mais como voltar atrás. O destino já tinha batido o martelo: nossos caminhos haviam se cruzado para nunca mais se separarem.
+                  </p>
+                  <p>
+                    Nós dois queríamos nos encontrar, mas o que achamos foi muito além de um porto seguro. Encontramos um no outro a força que nos faltava.
+                  </p>
+                  <p>
+                    Desde aquele momento, a vida nos testou de todas as formas possíveis. Enfrentamos tempestades, dias difíceis e obstáculos que pareciam intransponíveis. Mas a nossa grande resposta para o mundo sempre foi a união. Enfrentamos tudo juntos. Nunca soltamos as mãos. Diante de cada problema, olhávamos um nos olhos do outro e decidíamos caminhar, passo a passo, com uma confiança inabalável. Uma cumplicidade rara, de quem sabe que não está sozinho na batalha.
+                  </p>
+                  <p>
+                    Sempre confiamos um no outro e, acima de tudo, confiamos que, através do nosso amor e do nosso esforço mútuo, seríamos capazes de suportar qualquer coisa. E suportamos. Cada cicatriz do passado virou aprendizado, e cada barreira que desabou no nosso caminho só serviu de tijolo para construir a fortaleza que é a nossa família e a nossa vida hoje. O nosso esforço valeu cada segundo, cada conversa na madrugada, cada abraço apertado nos dias cinzentos.
+                  </p>
+
+                  <div className="relative p-6 my-6 border border-pink-100 rounded-2xl bg-gradient-to-br from-amber-50/40 to-pink-50/40 text-center">
+                    <Sparkles className="w-6 h-6 text-amber-500 mx-auto mb-2 animate-bounce" />
+                    <p className="font-serif font-bold text-pink-950 text-xl">
+                      "Hoje, olho para trás e vejo que te amo muito mais do que ontem e milhões de vezes mais do que no dia em que nos conhecemos."
+                    </p>
+                  </div>
+
+                  <p>
+                    Hoje, quando eu paro um instante e olho para trás, uma onda de gratidão e orgulho invade o meu peito. Vejo tudo o que construímos, a cumplicidade que lapidamos e a certeza que plantamos no coração um do outro. E a maior verdade que posso te dizer agora é que o meu amor por você não é estático; ele é um ser vivo que cresce a cada amanhecer.
+                  </p>
+                  <p>
+                    Hoje, eu te amo muito mais do que ontem. E milhões de vezes mais do que naquele dia em que começamos aquela conversa boba no WhatsApp, sem imaginar que estávamos assinando o início do nosso "para sempre".
+                  </p>
+                  <p>
+                    Obrigado por seres a minha companheira de vida, a minha melhor amiga, o meu amor e a minha esposa. Que venham mais dias, mais anos e mais superações, sempre assim: de mãos dadas contigo.
+                  </p>
+                  <p className="text-right font-serif text-pink-700 italic font-bold mt-8">
+                    Com todo o meu amor, para sempre teu.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: LINHA DO TEMPO */}
+            {activeTab === 'story' && (
+              <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-10 shadow-xl border border-pink-100 animate-slide-up">
+                <div className="text-center mb-10">
+                  <h3 className="text-3xl font-serif font-bold text-pink-950">A Nossa Jornada Juntos</h3>
+                  <p className="text-slate-500 text-sm mt-2">Cada marco, cada superação, de mãos dadas para sempre.</p>
+                </div>
+
+                <div className="relative border-l-2 border-pink-200 ml-4 md:ml-32 space-y-12">
+                  
+                  {/* WhatsApp */}
+                  <div className="relative">
+                    <div className="hidden md:block absolute -left-32 top-1 text-right w-24">
+                      <span className="font-bold text-pink-600 block">Fase 1</span>
+                      <span className="text-xs text-slate-400">O Começo</span>
+                    </div>
+                    <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-pink-600 border-4 border-white shadow"></div>
+                    <div className="ml-8 bg-pink-50/50 rounded-2xl p-6 border border-pink-100 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2 text-pink-800">
+                        <Heart fill="currentColor" className="w-4 h-4" />
+                        <h4 className="font-serif font-bold text-lg">A Conversa Boba de WhatsApp</h4>
+                      </div>
+                      <p className="text-slate-600 text-sm md:text-base leading-relaxed">
+                        Conhecemo-nos quando nenhum de nós procurava nada. Duas pessoas com o coração machucado pelo passado, cheias de defesas e problemas, mas que no fundo ainda nutriam a vontade de se encontrar.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* O Impacto Real */}
+                  <div className="relative">
+                    <div className="hidden md:block absolute -left-32 top-1 text-right w-24">
+                      <span className="font-bold text-pink-600 block">Fase 2</span>
+                      <span className="text-xs text-slate-400">A Certeza</span>
+                    </div>
+                    <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-pink-600 border-4 border-white shadow"></div>
+                    <div className="ml-8 bg-pink-50/50 rounded-2xl p-6 border border-pink-100 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2 text-pink-800">
+                        <Sparkles className="w-4 h-4 text-amber-500" />
+                        <h4 className="font-serif font-bold text-lg">Tão Real Que Não Tinha Volta</h4>
+                      </div>
+                      <p className="text-slate-600 text-sm md:text-base leading-relaxed">
+                        A sintonia foi tão profunda e verdadeira que nos envolveu por completo. Quando percebemos a intensidade do que estávamos a sentir, compreendemos que não havia como voltar atrás. O amor já tinha decidido por nós.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* De Mãos Dadas */}
+                  <div className="relative">
+                    <div className="hidden md:block absolute -left-32 top-1 text-right w-24">
+                      <span className="font-bold text-pink-600 block">Fase 3</span>
+                      <span className="text-xs text-slate-400">Superação</span>
+                    </div>
+                    <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-pink-600 border-4 border-white shadow"></div>
+                    <div className="ml-8 bg-pink-50/50 rounded-2xl p-6 border border-pink-100 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2 text-pink-800">
+                        <Compass className="w-4 h-4 text-emerald-500" />
+                        <h4 className="font-serif font-bold text-lg">Enfrentando Tudo Juntos</h4>
+                      </div>
+                      <p className="text-slate-600 text-sm md:text-base leading-relaxed">
+                        Enfrentamos tempestades, lutas e dificuldades sem nunca soltar as mãos. Confiámos sempre um no outro e sabíamos que, com amor e muito esforço, seríamos capazes de suportar tudo. Cada obstáculo apenas nos uniu ainda mais.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* O Hoje */}
+                  <div className="relative">
+                    <div className="hidden md:block absolute -left-32 top-1 text-right w-24">
+                      <span className="font-bold text-pink-600 block">Hoje</span>
+                      <span className="text-xs text-slate-400">Amor Eterno</span>
+                    </div>
+                    <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-pink-600 border-4 border-white shadow"></div>
+                    <div className="ml-8 bg-gradient-to-r from-pink-50 to-amber-50 rounded-2xl p-6 border border-pink-100 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-2 mb-2 text-pink-800">
+                        <Heart fill="red" className="w-4 h-4 text-pink-600 animate-pulse" />
+                        <h4 className="font-serif font-bold text-lg">Amo-te Mais Do Que Ontem</h4>
+                      </div>
+                      <p className="text-slate-600 text-sm md:text-base leading-relaxed font-semibold">
+                        Hoje olho para trás com orgulho de tudo o que vencemos. Amo-te infinitamente mais do que ontem, e milhões de vezes mais do que no primeiro dia de conversa boba. És a minha melhor decisão.
+                      </p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: ÁLBUM DE FOTOS */}
+            {activeTab === 'gallery' && (
+              <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-10 shadow-xl border border-pink-100 animate-slide-up">
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                  <div className="text-center md:text-left">
+                    <h3 className="text-3xl font-serif font-bold text-pink-950">O Nosso Álbum Digital</h3>
+                    <p className="text-slate-500 text-sm mt-1">Carrega fotos vossas do teu dispositivo para personalizar este presente mágico!</p>
+                  </div>
+                  
+                  <label className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white rounded-2xl cursor-pointer font-semibold shadow-md shadow-pink-500/20 transition-all duration-300 transform active:scale-95">
+                    <Plus className="w-5 h-5" />
+                    <span>Adicionar Foto Nossa</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handlePhotoUpload} 
+                      className="hidden" 
+                    />
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {photos.map((photo) => (
+                    <div key={photo.id} className="bg-white rounded-2xl overflow-hidden shadow-lg border border-pink-100/60 group relative flex flex-col justify-between">
+                      <div className="relative h-64 overflow-hidden bg-slate-100">
+                        <img 
+                          src={photo.url} 
+                          alt={photo.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          onError={(e) => {
+                            e.target.src = 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=600';
+                          }}
+                        />
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); deletePhoto(photo.id); }}
+                          className="absolute top-3 right-3 p-2 bg-white/95 hover:bg-red-50 text-red-600 rounded-xl shadow-md transition-colors"
+                          title="Remover foto"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="p-4">
+                        <input 
+                          type="text" 
+                          value={photo.title}
+                          onChange={(e) => updatePhotoText(photo.id, 'title', e.target.value)}
+                          className="w-full font-serif font-bold text-pink-950 text-base focus:bg-pink-50/50 p-1 rounded border-none focus:outline-pink-200 transition-colors"
+                          placeholder="Título do momento"
+                        />
+                        <textarea 
+                          value={photo.desc}
+                          onChange={(e) => updatePhotoText(photo.id, 'desc', e.target.value)}
+                          className="w-full text-xs text-slate-500 mt-2 focus:bg-pink-50/50 p-1 rounded border-none focus:outline-pink-200 transition-colors resize-none h-12"
+                          placeholder="Adicione um detalhe..."
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                  {photos.length === 0 && (
+                    <div className="col-span-1 md:col-span-3 text-center py-16 bg-pink-50/20 border-2 border-dashed border-pink-200 rounded-3xl">
+                      <ImageIcon className="w-12 h-12 text-pink-300 mx-auto mb-3" />
+                      <p className="text-slate-600 font-medium">O vosso álbum está vazio.</p>
+                      <p className="text-slate-400 text-xs mt-1">Carrega fotos acima para eternizar as vossas memórias juntas!</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          {/* Rodapé */}
+          <footer className="text-center mt-16 pb-8 border-t border-pink-100 pt-8">
+            <Heart fill="#e11d48" className="text-rose-600 animate-pulse w-8 h-8 mx-auto mb-3" />
+            <p className="font-serif font-bold text-pink-900 text-lg">"Para sempre de mãos dadas..."</p>
+            <p className="text-slate-400 text-xs mt-1">Feito com amor puro e eterno.</p>
+          </footer>
+
+        </main>
+      )}
+    </div>
+  );
+}
