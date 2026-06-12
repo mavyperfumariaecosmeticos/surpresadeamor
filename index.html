@@ -94,7 +94,7 @@ export default function App() {
     "Prometo segurar a tua mão hoje, amanhã e em todos os dias da nossa vida.",
     "De todas as histórias de amor do mundo, a nossa é a minha favorita.",
     "Contigo descobri que o amor verdadeiro cura qualquer ferida do passado.",
-    "Conquistamos tudo juntos porque o nosso amor é feito de verdade e esforço mútuo."
+    "Conquistamos tudo juntos porque o nosso amor é feito de verdade e effort mútuo."
   ];
   const [activeQuote, setActiveQuote] = useState(0);
   const [floatingHearts, setFloatingHearts] = useState([]);
@@ -121,22 +121,30 @@ export default function App() {
     }));
     setFloatingHearts(hearts);
 
-    // Carregar API do YouTube de forma segura
+    // Carregar API do YouTube de forma segura evitando duplicações
     const loadYoutubeAPI = () => {
-      if (!window.YT) {
-        const tag = document.createElement('script');
-        tag.src = 'https://www.youtube.com/iframe_api';
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        window.onYouTubeIframeAPIReady = initializePlayer;
-      } else {
+      if (window.YT && window.YT.Player) {
         initializePlayer();
+      } else {
+        if (!document.getElementById('yt-iframe-api-script')) {
+          const tag = document.createElement('script');
+          tag.id = 'yt-iframe-api-script';
+          tag.src = 'https://www.youtube.com/iframe_api';
+          const firstScriptTag = document.getElementsByTagName('script')[0];
+          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        const prevCallback = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => {
+          if (prevCallback) prevCallback();
+          initializePlayer();
+        };
       }
     };
 
     const initializePlayer = () => {
-      // Criação do player do YouTube voltado para "Zf_fQDpPYjM" (Sunshine - Delacruz)
+      if (playerRef.current) return; // Evita inicializar duplicado em modo de desenvolvimento
+
       playerRef.current = new window.YT.Player('yt-player-frame', {
         height: '100%',
         width: '100%',
@@ -147,14 +155,13 @@ export default function App() {
           modestbranding: 1,
           rel: 0,
           loop: 1,
-          playlist: 'Zf_fQDpPYjM' // Necessário para fazer loop de vídeo único
+          playlist: 'Zf_fQDpPYjM'
         },
         events: {
           onReady: () => {
             setYtReady(true);
           },
           onStateChange: (event) => {
-            // Monitorar estados para sincronizar nosso botão com o YouTube
             if (event.data === window.YT.PlayerState.PLAYING) {
               setIsPlaying(true);
             } else if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.ENDED) {
@@ -166,6 +173,14 @@ export default function App() {
     };
 
     loadYoutubeAPI();
+
+    // Limpar o player ao desmontar para evitar vazamento de memória
+    return () => {
+      if (playerRef.current && typeof playerRef.current.destroy === 'function') {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
   }, []);
 
   const togglePlay = () => {
@@ -248,7 +263,7 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-tr from-rose-50 via-pink-100 to-amber-50 text-slate-800 font-sans relative overflow-x-hidden select-none pb-12" onClick={triggerClickHearts}>
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
-      {/* Div oculta necessária para carregar e controlar a API do YouTube em segundo plano se a TV estiver fechada */}
+      {/* Container de vídeo e áudio do YouTube */}
       <div className={`fixed bottom-4 right-4 z-50 w-72 h-44 rounded-2xl overflow-hidden border-4 border-pink-400 bg-black shadow-2xl transition-all duration-500 no-click-hearts ${showVideo && unlocked ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[200%] opacity-0 scale-75 pointer-events-none'}`}>
         <div id="yt-player-frame" className="w-full h-full"></div>
         <button 
@@ -286,7 +301,6 @@ export default function App() {
           <span className="font-serif font-bold text-lg text-pink-800 tracking-wide">O Nosso Amor Eterno</span>
         </div>
         
-        {}
         <div className="flex items-center gap-3">
           {unlocked && (
             <button
