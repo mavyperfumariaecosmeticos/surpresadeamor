@@ -15,6 +15,9 @@ import {
   Music
 } from 'lucide-react';
 
+// ALTERE APENAS O ID DO VÍDEO SE QUISER MUDAR A MÚSICA NO FUTURO:
+const YOUTUBE_VIDEO_ID = 'Zf_fQDpPYjM';
+
 const customStyles = `
   @keyframes float-heart {
     0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; }
@@ -81,11 +84,26 @@ export default function App() {
   
   const playerRef = useRef(null);
 
-  // Customização de fotos armazenadas no localStorage para preservar as memórias
+  // Armazenamento local das fotos para manter as recordações salvas
   const [photos, setPhotos] = useState([
-    { id: 1, title: 'O Começo de Tudo', desc: 'A nossa primeira foto juntos, onde o nosso mundo mudou de cor.', url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=600' },
-    { id: 2, title: 'Cúmplices em Tudo', desc: 'Sempre de mãos dadas, enfrentando qualquer tempestade de cabeça erguida.', url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&q=80&w=600' },
-    { id: 3, title: 'O Teu Sorriso', desc: 'A minha maior certeza de que cada pequena luta valeu a pena.', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600' }
+    { 
+      id: 1, 
+      title: 'O Começo de Tudo', 
+      desc: 'A nossa primeira foto juntos, onde o nosso mundo mudou de cor.', 
+      url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=600' 
+    },
+    { 
+      id: 2, 
+      title: 'Cúmplices em Tudo', 
+      desc: 'Sempre de mãos dadas, enfrentando qualquer tempestade de cabeça erguida.', 
+      url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&q=80&w=600' 
+    },
+    { 
+      id: 3, 
+      title: 'O Teu Sorriso', 
+      desc: 'A minha maior certeza de que cada pequena luta valeu a pena.', 
+      url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600' 
+    }
   ]);
 
   const loveQuotes = [
@@ -94,13 +112,14 @@ export default function App() {
     "Prometo segurar a tua mão hoje, amanhã e em todos os dias da nossa vida.",
     "De todas as histórias de amor do mundo, a nossa é a minha favorita.",
     "Contigo descobri que o amor verdadeiro cura qualquer ferida do passado.",
-    "Conquistamos tudo juntos porque o nosso amor é feito de verdade e effort mútuo."
+    "Conquistamos tudo juntos porque o nosso amor é feito de verdade e esforço mútuo."
   ];
+
   const [activeQuote, setActiveQuote] = useState(0);
   const [floatingHearts, setFloatingHearts] = useState([]);
 
   useEffect(() => {
-    // Carregar fotos salvas do localStorage
+    // Carrega fotos locais do usuário, se existirem
     const savedPhotos = localStorage.getItem('love_letter_photos');
     if (savedPhotos) {
       try {
@@ -110,7 +129,7 @@ export default function App() {
       }
     }
 
-    // Gerar corações flutuantes decorativos
+    // Criar os corações flutuantes de fundo
     const hearts = Array.from({ length: 25 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -121,7 +140,7 @@ export default function App() {
     }));
     setFloatingHearts(hearts);
 
-    // Carregar API do YouTube de forma segura evitando duplicações
+    // Carregar a API de Iframe do YouTube
     const loadYoutubeAPI = () => {
       if (window.YT && window.YT.Player) {
         initializePlayer();
@@ -143,19 +162,19 @@ export default function App() {
     };
 
     const initializePlayer = () => {
-      if (playerRef.current) return; // Evita inicializar duplicado em modo de desenvolvimento
+      if (playerRef.current) return;
 
       playerRef.current = new window.YT.Player('yt-player-frame', {
         height: '100%',
         width: '100%',
-        videoId: 'Zf_fQDpPYjM',
+        videoId: YOUTUBE_VIDEO_ID,
         playerVars: {
           autoplay: 0,
           controls: 1,
           modestbranding: 1,
           rel: 0,
           loop: 1,
-          playlist: 'Zf_fQDpPYjM'
+          playlist: YOUTUBE_VIDEO_ID
         },
         events: {
           onReady: () => {
@@ -174,7 +193,6 @@ export default function App() {
 
     loadYoutubeAPI();
 
-    // Limpar o player ao desmontar para evitar vazamento de memória
     return () => {
       if (playerRef.current && typeof playerRef.current.destroy === 'function') {
         playerRef.current.destroy();
@@ -263,7 +281,7 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-tr from-rose-50 via-pink-100 to-amber-50 text-slate-800 font-sans relative overflow-x-hidden select-none pb-12" onClick={triggerClickHearts}>
       <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
-      {/* Container de vídeo e áudio do YouTube */}
+      {/* Caixa de Vídeo Flutuante */}
       <div className={`fixed bottom-4 right-4 z-50 w-72 h-44 rounded-2xl overflow-hidden border-4 border-pink-400 bg-black shadow-2xl transition-all duration-500 no-click-hearts ${showVideo && unlocked ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[200%] opacity-0 scale-75 pointer-events-none'}`}>
         <div id="yt-player-frame" className="w-full h-full"></div>
         <button 
@@ -274,7 +292,7 @@ export default function App() {
         </button>
       </div>
 
-      {/* Background de Corações Flutuantes */}
+      {/* Fundo decorativo */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {floatingHearts.map((heart) => (
           <div
@@ -443,6 +461,7 @@ export default function App() {
 
           <div className="transition-all duration-500">
             
+            {}
             {/* TAB 1: CARTA DE AMOR COMPLETA */}
             {activeTab === 'letter' && (
               <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-12 shadow-xl border border-pink-100 animate-slide-up relative overflow-hidden">
