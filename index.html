@@ -15,40 +15,61 @@ import {
   Music
 } from 'lucide-react';
 
-const YOUTUBE_VIDEO_ID = 'Zf_fQDpPYjM';
-
-const customCSS = " " +
-"@keyframes float-heart { " +
-"  0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; } " +
-"  10% { opacity: 0.8; } " +
-"  90% { opacity: 0.8; } " +
-"  100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; } " +
-"} " +
-"@keyframes pulse-slow { " +
-"  0%, 100% { transform: scale(1); } " +
-"  50% { transform: scale(1.05); } " +
-"} " +
-"@keyframes float-gentle { " +
-"  0%, 100% { transform: translateY(0px) rotate(0deg); } " +
-"  50% { transform: translateY(-10px) rotate(3deg); } " +
-"} " +
-"@keyframes slide-up { " +
-"  from { transform: translateY(20px); opacity: 0; } " +
-"  to { transform: translateY(0); opacity: 1; } " +
-"} " +
-"@keyframes spin-vinyl { " +
-"  from { transform: rotate(0deg); } " +
-"  to { transform: rotate(360deg); } " +
-"} " +
-".animate-float-heart { position: absolute; bottom: -20px; animation: float-heart linear infinite; } " +
-".animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; } " +
-".animate-float-gentle { animation: float-gentle 6s ease-in-out infinite; } " +
-".animate-slide-up { animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; } " +
-".animate-spin-vinyl { animation: spin-vinyl 4s linear infinite; } " +
-".text-glow { text-shadow: 0 2px 10px rgba(219, 39, 119, 0.2); } " +
-".envelope-wrapper { perspective: 1000px; } " +
-".envelope { position: relative; transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; } " +
-".perspective-1000 { perspective: 1000px; } ";
+const customStyles = `
+  @keyframes float-heart {
+    0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.8; }
+    100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+  }
+  @keyframes pulse-slow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes float-gentle {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(3deg); }
+  }
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes spin-vinyl {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-float-heart {
+    position: absolute;
+    bottom: -20px;
+    animation: float-heart linear infinite;
+  }
+  .animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
+  }
+  .animate-float-gentle {
+    animation: float-gentle 6s ease-in-out infinite;
+  }
+  .animate-slide-up {
+    animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .animate-spin-vinyl {
+    animation: spin-vinyl 4s linear infinite;
+  }
+  .text-glow {
+    text-shadow: 0 2px 10px rgba(219, 39, 119, 0.2);
+  }
+  .envelope-wrapper {
+    perspective: 1000px;
+  }
+  .envelope {
+    position: relative;
+    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+`;
 
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,30 +77,15 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
-  const [ytSdkLoaded, setYtSdkLoaded] = useState(false);
+  const [ytReady, setYtReady] = useState(false);
   
   const playerRef = useRef(null);
-  const playerContainerRef = useRef(null);
 
+  // Customização de fotos armazenadas no localStorage para preservar as memórias
   const [photos, setPhotos] = useState([
-    { 
-      id: 1, 
-      title: 'O Começo de Tudo', 
-      desc: 'A nossa primeira foto juntos, onde o nosso mundo mudou de cor.', 
-      url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=600' 
-    },
-    { 
-      id: 2, 
-      title: 'Cúmplices em Tudo', 
-      desc: 'Sempre de mãos dadas, enfrentando qualquer tempestade de cabeça erguida.', 
-      url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&q=80&w=600' 
-    },
-    { 
-      id: 3, 
-      title: 'O Teu Sorriso', 
-      desc: 'A minha maior certeza de que cada pequena luta valeu a pena.', 
-      url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600' 
-    }
+    { id: 1, title: 'O Começo de Tudo', desc: 'A nossa primeira foto juntos, onde o nosso mundo mudou de cor.', url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=600' },
+    { id: 2, title: 'Cúmplices em Tudo', desc: 'Sempre de mãos dadas, enfrentando qualquer tempestade de cabeça erguida.', url: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&q=80&w=600' },
+    { id: 3, title: 'O Teu Sorriso', desc: 'A minha maior certeza de que cada pequena luta valeu a pena.', url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=600' }
   ]);
 
   const loveQuotes = [
@@ -88,14 +94,13 @@ export default function App() {
     "Prometo segurar a tua mão hoje, amanhã e em todos os dias da nossa vida.",
     "De todas as histórias de amor do mundo, a nossa é a minha favorita.",
     "Contigo descobri que o amor verdadeiro cura qualquer ferida do passado.",
-    "Conquistamos tudo juntos porque o nosso amor é feito de verdade e esforço mútuo."
+    "Conquistamos tudo juntos porque o nosso amor é feito de verdade e effort mútuo."
   ];
-
   const [activeQuote, setActiveQuote] = useState(0);
   const [floatingHearts, setFloatingHearts] = useState([]);
 
   useEffect(() => {
-    /* Carregar fotos locais se existirem */
+    // Carregar fotos salvas do localStorage
     const savedPhotos = localStorage.getItem('love_letter_photos');
     if (savedPhotos) {
       try {
@@ -105,65 +110,56 @@ export default function App() {
       }
     }
 
-    /* Criar corações flutuantes no fundo */
+    // Gerar corações flutuantes decorativos
     const hearts = Array.from({ length: 25 }).map((_, i) => ({
       id: i,
-      left: (Math.random() * 100) + "%",
-      delay: (Math.random() * 10) + "s",
-      duration: (12 + Math.random() * 10) + "s",
-      size: (12 + Math.random() * 20) + "px",
+      left: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 10}s`,
+      duration: `${12 + Math.random() * 10}s`,
+      size: `${12 + Math.random() * 20}px`,
       opacity: 0.15 + Math.random() * 0.35
     }));
     setFloatingHearts(hearts);
 
-    /* Carregar SDK do YouTube com segurança */
-    const loadYoutubeSDK = () => {
+    // Carregar API do YouTube de forma segura evitando duplicações
+    const loadYoutubeAPI = () => {
       if (window.YT && window.YT.Player) {
-        setYtSdkLoaded(true);
+        initializePlayer();
       } else {
         if (!document.getElementById('yt-iframe-api-script')) {
           const tag = document.createElement('script');
           tag.id = 'yt-iframe-api-script';
           tag.src = 'https://www.youtube.com/iframe_api';
-          document.body.appendChild(tag);
+          const firstScriptTag = document.getElementsByTagName('script')[0];
+          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         }
 
         const prevCallback = window.onYouTubeIframeAPIReady;
         window.onYouTubeIframeAPIReady = () => {
           if (prevCallback) prevCallback();
-          setYtSdkLoaded(true);
+          initializePlayer();
         };
       }
     };
 
-    loadYoutubeSDK();
+    const initializePlayer = () => {
+      if (playerRef.current) return; // Evita inicializar duplicado em modo de desenvolvimento
 
-    return () => {
-      if (playerRef.current && typeof playerRef.current.destroy === 'function') {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (unlocked && ytSdkLoaded && !playerRef.current && playerContainerRef.current) {
-      playerRef.current = new window.YT.Player(playerContainerRef.current, {
+      playerRef.current = new window.YT.Player('yt-player-frame', {
         height: '100%',
         width: '100%',
-        videoId: YOUTUBE_VIDEO_ID,
+        videoId: 'Zf_fQDpPYjM',
         playerVars: {
-          autoplay: 1,
+          autoplay: 0,
           controls: 1,
           modestbranding: 1,
           rel: 0,
           loop: 1,
-          playlist: YOUTUBE_VIDEO_ID
+          playlist: 'Zf_fQDpPYjM'
         },
         events: {
-          onReady: (event) => {
-            event.target.playVideo();
-            setIsPlaying(true);
+          onReady: () => {
+            setYtReady(true);
           },
           onStateChange: (event) => {
             if (event.data === window.YT.PlayerState.PLAYING) {
@@ -174,13 +170,22 @@ export default function App() {
           }
         }
       });
-    }
-  }, [unlocked, ytSdkLoaded]);
+    };
+
+    loadYoutubeAPI();
+
+    // Limpar o player ao desmontar para evitar vazamento de memória
+    return () => {
+      if (playerRef.current && typeof playerRef.current.destroy === 'function') {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
+  }, []);
 
   const togglePlay = () => {
-    if (playerRef.current && typeof playerRef.current.getPlayerState === 'function') {
-      const state = playerRef.current.getPlayerState();
-      if (state === window.YT.PlayerState.PLAYING) {
+    if (playerRef.current && ytReady) {
+      if (isPlaying) {
         playerRef.current.pauseVideo();
         setIsPlaying(false);
       } else {
@@ -237,13 +242,13 @@ export default function App() {
 
     const newHeart = {
       id: Date.now() + Math.random(),
-      left: ((x / rect.width) * 100) + "%",
+      left: `${(x / rect.width) * 100}%`,
       delay: '0s',
       duration: '4s',
       size: '24px',
       opacity: 0.8,
       style: {
-        bottom: (rect.height - y) + "px",
+        bottom: `${rect.height - y}px`,
         transform: 'translateY(0) scale(1)'
       }
     };
@@ -256,12 +261,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-rose-50 via-pink-100 to-amber-50 text-slate-800 font-sans relative overflow-x-hidden select-none pb-12" onClick={triggerClickHearts}>
-      
-      <style dangerouslySetInnerHTML={{ __html: customCSS }} />
+      <style dangerouslySetInnerHTML={{ __html: customStyles }} />
 
-      {/* Caixa de Video Flutuante */}
-      <div className={"fixed bottom-4 right-4 z-50 w-72 h-44 rounded-2xl overflow-hidden border-4 border-pink-400 bg-black shadow-2xl transition-all duration-500 no-click-hearts " + (showVideo && unlocked ? "translate-y-0 opacity-100 scale-100" : "translate-y-[200%] opacity-0 scale-75 pointer-events-none")}>
-        <div ref={playerContainerRef} className="w-full h-full"></div>
+      {/* Container de vídeo e áudio do YouTube */}
+      <div className={`fixed bottom-4 right-4 z-50 w-72 h-44 rounded-2xl overflow-hidden border-4 border-pink-400 bg-black shadow-2xl transition-all duration-500 no-click-hearts ${showVideo && unlocked ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[200%] opacity-0 scale-75 pointer-events-none'}`}>
+        <div id="yt-player-frame" className="w-full h-full"></div>
         <button 
           onClick={() => setShowVideo(false)}
           className="absolute top-2 right-2 bg-pink-600 text-white font-bold text-xs px-2 py-1 rounded hover:bg-pink-700 transition"
@@ -270,7 +274,7 @@ export default function App() {
         </button>
       </div>
 
-      {/* Fundo decorativo com corações */}
+      {/* Background de Corações Flutuantes */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {floatingHearts.map((heart) => (
           <div
@@ -301,7 +305,7 @@ export default function App() {
           {unlocked && (
             <button
               onClick={(e) => { e.stopPropagation(); setShowVideo(!showVideo); }}
-              className={"flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold shadow transition-all duration-300 " + (showVideo ? "bg-amber-500 text-white animate-bounce" : "bg-white/80 text-amber-700 hover:bg-white")}
+              className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold shadow transition-all duration-300 ${showVideo ? 'bg-amber-500 text-white animate-bounce' : 'bg-white/80 text-amber-700 hover:bg-white'}`}
             >
               <Tv className="w-3.5 h-3.5" />
               <span>{showVideo ? 'Ocultar Vídeo' : 'Ver Clipe'}</span>
@@ -310,7 +314,7 @@ export default function App() {
 
           <button 
             onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-            className={"flex items-center gap-3 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 " + (isPlaying ? "bg-pink-600 text-white shadow-lg shadow-pink-200" : "bg-white/80 backdrop-blur text-pink-700 hover:bg-white")}
+            className={`flex items-center gap-3 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${isPlaying ? 'bg-pink-600 text-white shadow-lg shadow-pink-200' : 'bg-white/80 backdrop-blur text-pink-700 hover:bg-white'}`}
           >
             {isPlaying ? (
               <>
@@ -348,12 +352,16 @@ export default function App() {
 
           <div className="envelope-wrapper w-full max-w-md animate-float-gentle px-2">
             <div 
-              className={"envelope bg-gradient-to-br from-rose-100 to-pink-200 border border-pink-300 rounded-2xl shadow-2xl p-8 cursor-pointer transform hover:scale-105 duration-500 relative flex flex-col items-center justify-center min-h-[300px] " + (isOpen ? "rotate-y-180 scale-95 opacity-50 pointer-events-none" : "")}
+              className={`envelope bg-gradient-to-br from-rose-100 to-pink-200 border border-pink-300 rounded-2xl shadow-2xl p-8 cursor-pointer transform hover:scale-105 duration-500 relative flex flex-col items-center justify-center min-h-[300px] ${isOpen ? 'rotate-y-180 scale-95 opacity-50 pointer-events-none' : ''}`}
               onClick={(e) => {
                 e.stopPropagation();
                 setIsOpen(true);
                 setTimeout(() => {
                   setUnlocked(true);
+                  if (playerRef.current && ytReady) {
+                    playerRef.current.playVideo();
+                    setIsPlaying(true);
+                  }
                 }, 1200);
               }}
             >
@@ -411,21 +419,21 @@ export default function App() {
             <div className="bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl shadow-md border border-pink-100 flex flex-wrap gap-2 justify-center">
               <button 
                 onClick={(e) => { e.stopPropagation(); setActiveTab('letter'); }}
-                className={"flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 " + (activeTab === "letter" ? "bg-pink-600 text-white shadow-md" : "text-slate-600 hover:text-pink-600 hover:bg-rose-50/50")}
+                className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'letter' ? 'bg-pink-600 text-white shadow-md' : 'text-slate-600 hover:text-pink-600 hover:bg-rose-50/50'}`}
               >
                 <BookOpen className="w-4 h-4" />
                 A Nossa Carta
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); setActiveTab('story'); }}
-                className={"flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 " + (activeTab === "story" ? "bg-pink-600 text-white shadow-md" : "text-slate-600 hover:text-pink-600 hover:bg-rose-50/50")}
+                className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'story' ? 'bg-pink-600 text-white shadow-md' : 'text-slate-600 hover:text-pink-600 hover:bg-rose-50/50'}`}
               >
                 <Clock className="w-4 h-4" />
                 Linha do Tempo
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); setActiveTab('gallery'); }}
-                className={"flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 " + (activeTab === "gallery" ? "bg-pink-600 text-white shadow-md" : "text-slate-600 hover:text-pink-600 hover:bg-rose-50/50")}
+                className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${activeTab === 'gallery' ? 'bg-pink-600 text-white shadow-md' : 'text-slate-600 hover:text-pink-600 hover:bg-rose-50/50'}`}
               >
                 <ImageIcon className="w-4 h-4" />
                 Álbum de Fotos
@@ -453,7 +461,7 @@ export default function App() {
                   </p>
                   
                   <blockquote className="border-l-4 border-pink-500 bg-pink-50/50 p-6 my-6 rounded-r-2xl font-sans italic text-pink-900 font-medium">
-                    "E então, surgiu aquela conversa boba de Instagram... Quem diria que uma tela de celular e algumas mensagens despretensiosas seriam o início da história mais bonita da minha vida?"
+                    "E então, surgiu aquela conversa boba de WhatsApp... Quem diria que uma tela de celular e algumas mensagens despretensiosas seriam o início da história mais bonita da minha vida?"
                   </blockquote>
 
                   <p>
@@ -466,7 +474,7 @@ export default function App() {
                     Desde aquele momento, a vida nos testou de todas as formas possíveis. Enfrentamos tempestades, dias difíceis e obstáculos que pareciam intransponíveis. Mas a nossa grande resposta para o mundo sempre foi a união. Enfrentamos tudo juntos. Nunca soltamos as mãos. Diante de cada problema, olhávamos um nos olhos do outro e decidíamos caminhar, passo a passo, com uma confiança inabalável. Uma cumplicidade rara, de quem sabe que não está sozinho na batalha.
                   </p>
                   <p>
-                    Sempre confiamos um no outro e, acima de tudo, confiamos que, através do nosso amor e do nosso effort mútuo, seríamos capazes de suportar qualquer coisa. E suportamos. Cada cicatriz do passado virou aprendizado, e cada barreira que desabou no nosso caminho só serviu de tijolo para construir a fortaleza que é a nossa família e a nossa vida hoje. O nosso esforço valeu cada segundo, cada conversa na madrugada, cada abraço apertado nos dias cinzentos.
+                    Sempre confiamos um no outro e, acima de tudo, confiamos que, através do nosso amor e do nosso esforço mútuo, seríamos capazes de suportar qualquer coisa. E suportamos. Cada cicatriz do passado virou aprendizado, e cada barreira que desabou no nosso caminho só serviu de tijolo para construir a fortaleza que é a nossa família e a nossa vida hoje. O nosso esforço valeu cada segundo, cada conversa na madrugada, cada abraço apertado nos dias cinzentos.
                   </p>
 
                   <div className="relative p-6 my-6 border border-pink-100 rounded-2xl bg-gradient-to-br from-amber-50/40 to-pink-50/40 text-center">
