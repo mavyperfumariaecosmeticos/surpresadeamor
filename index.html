@@ -15,64 +15,7 @@ import {
   Music
 } from 'lucide-react';
 
-// ALTERE APENAS O ID DO VÍDEO SE QUISER MUDAR A MÚSICA NO FUTURO:
 const YOUTUBE_VIDEO_ID = 'Zf_fQDpPYjM';
-
-const customStyles = `
-  @keyframes float-heart {
-    0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; }
-    10% { opacity: 0.8; }
-    90% { opacity: 0.8; }
-    100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
-  }
-  @keyframes pulse-slow {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-  @keyframes float-gentle {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-10px) rotate(3deg); }
-  }
-  @keyframes slide-up {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-  @keyframes spin-vinyl {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  .animate-float-heart {
-    position: absolute;
-    bottom: -20px;
-    animation: float-heart linear infinite;
-  }
-  .animate-pulse-slow {
-    animation: pulse-slow 3s ease-in-out infinite;
-  }
-  .animate-float-gentle {
-    animation: float-gentle 6s ease-in-out infinite;
-  }
-  .animate-slide-up {
-    animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .animate-spin-vinyl {
-    animation: spin-vinyl 4s linear infinite;
-  }
-  .text-glow {
-    text-shadow: 0 2px 10px rgba(219, 39, 119, 0.2);
-  }
-  .envelope-wrapper {
-    perspective: 1000px;
-  }
-  .envelope {
-    position: relative;
-    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
-  }
-  .perspective-1000 {
-    perspective: 1000px;
-  }
-`;
 
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
@@ -84,7 +27,6 @@ export default function App() {
   
   const playerRef = useRef(null);
 
-  // Armazenamento local das fotos para manter as recordações salvas
   const [photos, setPhotos] = useState([
     { 
       id: 1, 
@@ -119,7 +61,6 @@ export default function App() {
   const [floatingHearts, setFloatingHearts] = useState([]);
 
   useEffect(() => {
-    // Carrega fotos locais do usuário, se existirem
     const savedPhotos = localStorage.getItem('love_letter_photos');
     if (savedPhotos) {
       try {
@@ -129,7 +70,6 @@ export default function App() {
       }
     }
 
-    // Criar os corações flutuantes de fundo
     const hearts = Array.from({ length: 25 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -140,7 +80,6 @@ export default function App() {
     }));
     setFloatingHearts(hearts);
 
-    // Carregar a API de Iframe do YouTube
     const loadYoutubeAPI = () => {
       if (window.YT && window.YT.Player) {
         initializePlayer();
@@ -279,9 +218,65 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-tr from-rose-50 via-pink-100 to-amber-50 text-slate-800 font-sans relative overflow-x-hidden select-none pb-12" onClick={triggerClickHearts}>
-      <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+      
+      {/* CSS Injetado diretamente de forma limpa e isolada para evitar minificação incorreta pelo Git */}
+      <style>{`
+        @keyframes float-heart {
+          0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; }
+          10% { opacity: 0.8; }
+          90% { opacity: 0.8; }
+          100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+        }
+        @keyframes pulse-slow {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        @keyframes float-gentle {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(3deg); }
+        }
+        @keyframes slide-up {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes spin-vinyl {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-float-heart {
+          position: absolute;
+          bottom: -20px;
+          animation: float-heart linear infinite;
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 3s ease-in-out infinite;
+        }
+        .animate-float-gentle {
+          animation: float-gentle 6s ease-in-out infinite;
+        }
+        .animate-slide-up {
+          animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-spin-vinyl {
+          animation: spin-vinyl 4s linear infinite;
+        }
+        .text-glow {
+          text-shadow: 0 2px 10px rgba(219, 39, 119, 0.2);
+        }
+        .envelope-wrapper {
+          perspective: 1000px;
+        }
+        .envelope {
+          position: relative;
+          transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transform-style: preserve-3d;
+        }
+        .perspective-1000 {
+          perspective: 1000px;
+        }
+      `}</style>
 
-      {/* Caixa de Vídeo Flutuante */}
+      {}{/* Caixa de Vídeo Flutuante */}
       <div className={`fixed bottom-4 right-4 z-50 w-72 h-44 rounded-2xl overflow-hidden border-4 border-pink-400 bg-black shadow-2xl transition-all duration-500 no-click-hearts ${showVideo && unlocked ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[200%] opacity-0 scale-75 pointer-events-none'}`}>
         <div id="yt-player-frame" className="w-full h-full"></div>
         <button 
@@ -292,7 +287,7 @@ export default function App() {
         </button>
       </div>
 
-      {/* Fundo decorativo */}
+      {/* Fundo decorativo com corações */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {floatingHearts.map((heart) => (
           <div
@@ -312,7 +307,7 @@ export default function App() {
         ))}
       </div>
 
-      {/* Cabeçalho */}
+      {}{/* Cabeçalho */}
       <header className="relative z-10 max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Heart fill="#db2777" className="text-pink-600 animate-pulse w-6 h-6" />
@@ -354,6 +349,7 @@ export default function App() {
         </div>
       </header>
 
+      {}
       {!unlocked ? (
         <main className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-4">
           <div className="text-center max-w-xl mx-auto mb-12 animate-slide-up">
@@ -432,7 +428,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Abas de Navegação */}
+          {}
           <div className="flex justify-center mb-8">
             <div className="bg-white/80 backdrop-blur-sm p-1.5 rounded-2xl shadow-md border border-pink-100 flex flex-wrap gap-2 justify-center">
               <button 
@@ -462,7 +458,6 @@ export default function App() {
           <div className="transition-all duration-500">
             
             {}
-            {/* TAB 1: CARTA DE AMOR COMPLETA */}
             {activeTab === 'letter' && (
               <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-12 shadow-xl border border-pink-100 animate-slide-up relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-pink-100 rounded-full blur-3xl -z-10 opacity-60"></div>
@@ -519,7 +514,7 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 2: LINHA DO TEMPO */}
+            {}
             {activeTab === 'story' && (
               <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-10 shadow-xl border border-pink-100 animate-slide-up">
                 <div className="text-center mb-10">
@@ -565,7 +560,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* De Mãos Dadas */}
+                  {/* De Mãos Juntas */}
                   <div className="relative">
                     <div className="hidden md:block absolute -left-32 top-1 text-right w-24">
                       <span className="font-bold text-pink-600 block">Fase 3</span>
@@ -605,7 +600,7 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 3: ÁLBUM DE FOTOS */}
+            {}
             {activeTab === 'gallery' && (
               <div className="bg-white/90 backdrop-blur-md rounded-3xl p-6 md:p-10 shadow-xl border border-pink-100 animate-slide-up">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
@@ -678,7 +673,7 @@ export default function App() {
 
           </div>
 
-          {/* Rodapé */}
+          {}
           <footer className="text-center mt-16 pb-8 border-t border-pink-100 pt-8">
             <Heart fill="#e11d48" className="text-rose-600 animate-pulse w-8 h-8 mx-auto mb-3" />
             <p className="font-serif font-bold text-pink-900 text-lg">"Para sempre de mãos dadas..."</p>
